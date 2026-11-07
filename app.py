@@ -1879,7 +1879,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#c9a227;box-sh
 {% if is_admin %}<a href="/logout">Logout (Admin)</a>{% else %}<a href="/login" class="{{ 'active' if active=='login' }}">Admin Login</a>{% endif %}
 {% if is_super %}<a href="/admin-users" class="{{ 'active' if active=='users' }}">Admin Users</a>{% endif %}
 <button type="button" id="themeToggle" class="theme-btn" aria-label="Day / Night mode">&#127769; Night</button>
-</nav>{% if is_admin %}<div style="background:#fdf0c9;color:#5b1f1f;text-align:center;padding:9px;font-family:Arial,sans-serif;font-size:14px">Admin in na lut cang{% if admin_label %} - <strong>{{ admin_label }}</strong>{% endif %} - edit tuah khawh a si. {% if not is_super %}<a href="/change-password">Password Thlen</a> &middot; {% endif %}<a href="/logout">Logout</a></div>{% endif %}<main>
+</nav>{% if is_admin %}<div style="background:#fdf0c9;color:#5b1f1f;text-align:center;padding:9px;font-family:Arial,sans-serif;font-size:14px">Admin in na lut cang{% if admin_label %} - <strong>{{ admin_label }}</strong>{% endif %} - edit tuah khawh a si. {% if not is_super %}<a href="/change-password">Password Thlen</a> &middot; {% endif %}<a href="/backup">Backup</a>&middot;<a href="/logout">Logout</a></div>{% endif %}<main>
 """
 BASE_FOOT = """
 </main><footer>Raleigh Chin Baptist Church

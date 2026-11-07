@@ -2874,7 +2874,7 @@ onsubmit="return confirm('Hi thawng thar hi delete duh taktak maw?')">
 {% if gallery %}<div class="gallery">{% for g in gallery %}<figure class="g-item"><a href="/gallery-photo/{{ g.id }}" target="_blank"><img src="/gallery-photo/{{ g.id }}" alt="{{ g.caption }}" loading="lazy"></a>{% if g.caption %}<figcaption>{{ g.caption }}</figcaption>{% endif %}{% if is_admin %}<form method="post" action="/gallery/delete/{{ g.id }}" onsubmit="return confirm('Hi hmanthlak hi delete duh taktak maw?')"><button type="submit">Delete</button></form>{% endif %}</figure>{% endfor %}</div>
 {% else %}<p class="empty">Hmanthlak a um rih lo.{% if is_admin %} A tanglei form in activity hmanthlak upload.{% endif %}</p>{% endif %}
 {% if is_admin %}<form method="post" enctype="multipart/form-data" action="/gallery/upload" style="margin-top:12px">
-<label>Picture (JPG, PNG, WebP, GIF, 8 MB tlun lo)</label>
+<label>Picture (JPG, PNG, WebP, GIF, 8 MB nak a ngan lo mi)</label>
 <input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" required>
 <label>Caption / Hmanthlak kong (duh ahcun)</label>
 <input name="caption" placeholder="e.g. 2026 Church Picnic">

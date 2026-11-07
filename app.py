@@ -75,8 +75,8 @@ Admin Users / Admin Dang (User 5):
     Rian (role) thim, a mah le Username le Password a duh
     ningin a ser (Super Admin nih a set piak lo); mi dang
     nih an ser sual lo nak ding Registration Code a hau -
-    code cu Super Admin lawngin a theih i, mi 5 hna lawng
-    a chimh hna. Code default: RCBC2026 (Super Admin nih
+    code cu Super Admin lawngin a ngah i, mi 5 hna lawng
+    hi chim hna. Code default: RCBC2026 (Super Admin nih
     /admin-users page in a thlen khawh). Super Admin nih
     /admin-users page in user account a delete piak khawh;
     Super Admin account cu delete khawh a si lo. User nih
@@ -107,7 +107,7 @@ Caan Ngeitu / Service Duty Roster:
     Title lu, a tangah col hnih table (vorhlei = Rian,
     zanglei = A Ngeitu). Service cu SQLite (services le
     service_items tables) ah an um lai, restart zongah an
-    hlorh lo. Edit ah tlar thar chap / hlun hloh zong a ngah.
+    tlau lo. Edit ah tlar thar chap / hlun hloh zong a ngah.
     Khrihfabu pumhnak cu zarhkhat ah pahnih a si: Friday zan
     7:00 PM le Sunday 1:00 PM - 3:00 PM. Caan Ngeitu cu hi
     pumhnak pahnih hrambunh in a i rem - pumhnak pakhat cio
@@ -138,7 +138,7 @@ Directory - Family Members / Chungtel Min:
     tein a lut lai, data hlun a hlorh lo.
 
 Website Design:
-    Chin Bethel Church website bantukin a dawh deuh nak
+    Khrihfabu dang website bantukin a dawh deuh nak
     ding: Google Fonts (Montserrat + Outfit), Home ah
     hero section (logo, motto bia, service caan chip,
     a ra lai mi service donh nak COUNTDOWN - Ni,
@@ -2308,7 +2308,7 @@ def home():
 <div class="grid">
 <div class="card"><h3>Directory</h3><p>Chungtel min le address kawl.</p><a href="/directory">Directory &rarr;</a></div>
 <div class="card"><h3>Church Event</h3><p>Bupi, Youth, CE, Mission le Nubu department events.</p><a href="/church-event">Church Event &rarr;</a></div>
-<div class="card"><h3>Church News</h3><p>Thuthang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
+<div class="card"><h3>Church News</h3><p>Thawngpang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
 <div class="card"><h3>Pathian Bia</h3><p>Thawngtha bia - Pathian bia rel khawh.</p><a href="/pathian-bia">Pathian Bia &rarr;</a></div>
 <div class="card"><h3>Caan Ngeitu</h3><p>Pumhnak cio i rian ngeitu pawl.</p><a href="/caan-ngeitu">Caan Ngeitu &rarr;</a></div>
 </div>
@@ -2658,10 +2658,10 @@ LEADERS_PAGE_HTML = """
 {% if is_admin %}<div class="card"><h3>Leader Thar Chiah / Add Leader</h3>
 <p class="empty">hika form in Min, Position
 le Picture chiah law a save cang lai, website na restart zongah
-a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB tlun lo ding.</p>
+a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB nak ngan tar lo ding.</p>
 <form method="post" enctype="multipart/form-data">
 <label>Name / Min *</label>
-<input name="name" required placeholder="e.g. Pastor Hming">
+<input name="name" required placeholder="e.g. Pastor min">
 <label>Position / Rian</label>
 <select name="position">{% for pos in positions %}<option value="{{ pos }}">{{ pos }}</option>{% endfor %}<option value="Other">Other</option></select>
 <label>Other Position (Other na thim ahcun tial)</label>
@@ -2674,7 +2674,7 @@ a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB tlun lo ding.</p>
 <input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif">
 <label>Sort Order / A No.</label>
 <input name="sort_order" type="number" value="0">
-<button class="btn" type="submit">Add Leader / Leader Thar Chiah</button>
+<button class="btn" type="submit">Add Leader / Leader Thar Chia</button>
 </form></div>{% endif %}
 """
 
@@ -2856,9 +2856,9 @@ def church_news():
 {% if n.date %}<p><small>{{ n.date }}</small></p>{% endif %}
 <p style="white-space:pre-line">{{ n.body }}</p>
 {% if is_admin %}<form method="post" action="/church-news/delete/{{ n.id }}"
-onsubmit="return confirm('Hi thawng thar hi delete duh taktak maw?')">
+onsubmit="return confirm('Hi thawng thar hi delete na duh taktak maw?')">
 <button type="submit">Delete</button></form>{% endif %}</div>
-{% endfor %}{% else %}<div class="card"><p class="empty">Thuthang thar a um rih lo.{% if is_admin %} A tanglei form in thar chiah khawh a si.{% endif %}</p></div>{% endif %}
+{% endfor %}{% else %}<div class="card"><p class="empty">Thawngpang thar a um rih lo.{% if is_admin %} A tanglei form in thar chiah khawh a si.{% endif %}</p></div>{% endif %}
 {% if is_admin %}<div class="card"><h3>Thawng Thar Chiah / Add News</h3>
 <p class="empty">Hika form in tial law save, website na restart zongah a tlau lai lo.</p>
 <form method="post">
@@ -2878,11 +2878,11 @@ onsubmit="return confirm('Hi thawng thar hi delete duh taktak maw?')">
 <input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" required>
 <label>Caption / Hmanthlak kong (duh ahcun)</label>
 <input name="caption" placeholder="e.g. 2026 Church Picnic">
-<button class="btn" type="submit">Upload Picture / Hmanthlak Thun</button></form>{% endif %}</div>
+<button class="btn" type="submit">Upload Picture / Hmanthlak Tarnak</button></form>{% endif %}</div>
 <div class="card"><h3>RCBC YouTube</h3>
 {% if youtube_channel %}<p><a class="btn yt-btn" href="{{ youtube_channel }}" target="_blank" rel="noopener">&#9654; RCBC YouTube Channel</a></p>{% endif %}
 {% if videos %}{% for v in videos %}<div class="video-box"><p><strong>{{ v.title }}</strong></p><div class="video-wrap"><iframe src="https://www.youtube-nocookie.com/embed/{{ v.video_id }}" title="{{ v.title }}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>{% if is_admin %}<form method="post" action="/videos/delete/{{ v.id }}" onsubmit="return confirm('Hi video hi delete duh taktak maw?')" style="margin-top:8px"><button type="submit">Delete</button></form>{% endif %}</div>{% endfor %}
-{% else %}<p class="empty">Video a um rih lo.{% if is_admin %} A tanglei form in YouTube video link chiah.{% endif %}</p>{% endif %}
+{% else %}<p class="empty">Video a um rih lo.{% if is_admin %} A tanglei form in YouTube video link chia.{% endif %}</p>{% endif %}
 {% if is_admin %}<form method="post" action="/youtube-channel">
 <label>YouTube Channel Link</label>
 <input name="channel_url" type="url" value="{{ youtube_channel }}" placeholder="https://www.youtube.com/@RCBC...">
@@ -3111,7 +3111,7 @@ SCRIPTURES_HTML = """
 {% if sc.date %}<p><small>{{ sc.date }}</small></p>{% endif %}
 <div class="scripture-body">{{ sc.body }}</div>
 {% if is_admin %}<div class="leader-actions"><a href="/pathian-bia/edit/{{ sc.id }}">Edit</a>
-<form method="post" action="/pathian-bia/delete/{{ sc.id }}" onsubmit="return confirm('Hi Pathian bia hi delete duh taktak maw?')"><button type="submit">Delete</button></form></div>
+<form method="post" action="/pathian-bia/delete/{{ sc.id }}" onsubmit="return confirm('Hi Pathian bia hi delete na duh taktak maw?')"><button type="submit">Delete</button></form></div>
 <details class="edit-box"><summary>Edit / Remh (hitta zong)</summary>
 <form method="post" action="/pathian-bia/edit/{{ sc.id }}">
 <label>Title / Lu *</label><input name="title" required value="{{ sc.title }}">
@@ -3120,7 +3120,7 @@ SCRIPTURES_HTML = """
 <textarea name="body" class="auto-expand" rows="8">{{ sc.body }}</textarea>
 <button class="btn" type="submit">Save / Fim</button></form></details>{% endif %}
 </div>{% endfor %}
-{% else %}<div class="card"><p class="empty">Pathian bia a um rih lo.{% if is_admin %} A tanglei form in thar chiah khawh a si.{% endif %}</p></div>{% endif %}
+{% else %}<div class="card"><p class="empty">Pathian bia a um rih lo.{% if is_admin %} A tanglei ah a thar chiah khawh a si.{% endif %}</p></div>{% endif %}
 {% if is_admin %}<div class="card"><h3>Pathian Bia Thar Chiah / Add Scripture</h3>
 <p class="empty">Pathian bia tial na duh ah cun ka hin Title tial law, Cabia box
 ngan ah Pathian bia na duhmi tial; na tial pah ah box cu amah tein expand aa tuah lai (auto-expand).</p>
@@ -3131,7 +3131,7 @@ ngan ah Pathian bia na duhmi tial; na tial pah ah box cu amah tein expand aa tua
 <input name="date" type="date" value="{{ today }}">
 <label>Cabia / Pathian Bia</label>
 <textarea name="body" class="auto-expand" rows="10" placeholder="Pathian bia na duhmi hika hin tial..."></textarea>
-<button class="btn" type="submit">Add Scripture / Pathian Bia Chiah</button>
+<button class="btn" type="submit">Add Scripture / Pathian Bia Chia</button>
 </form></div>{% endif %}
 """
 

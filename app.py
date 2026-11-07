@@ -3072,7 +3072,98 @@ def get_footer_text():
     return _get_setting("footer_text", "") or DEFAULT_FOOTER_TEXT
 
 
-@app.route("/footer-text", methods=["POST"])
+BACKUP_HTML = """
+<div class="card">
+<h2>Backup - Data Fimnak</h2>
+<p>Post cia mi (Directory, News, Event, Leaders, Photo...) vialte cu database
+pakhat ah an um. Code edit / deploy na tuah hlan ah <strong>Backup Download</strong>
+hmet law file kha na laptop ah fim. Live site i data a tlau sual ahcun
+<strong>Restore</strong> in cu file in na lak kir khawh lai.</p>
+<p><a class="btn" href="/backup/download">Backup Download</a></p>
+</div>
+{% if is_super %}<div class="card">
+<h2>Restore (Super Admin lawng)</h2>
+<p class="empty">Backup file (.db) thim law Restore hmet. Atu um mi data vialte
+cu backup file i mi in an thlak dih lai. A hlun mi cu church_directory.db.safety
+ah a um peng lai (kir than khawh a si).</p>
+<form method="post" action="/backup/restore" enctype="multipart/form-data"
+ onsubmit="return confirm('Atu data vialte cu backup in thlak dih a si lai - peh maw?')">
+<label>Backup File (.db)</label>
+<input type="file" name="backup_file" accept=".db" required>
+<button class="btn" type="submit">Restore</button></form></div>{% endif %}
+"""
+
+
+@app.route("/backup")
+@login_required
+def backup_page():
+    html = (BASE_HEAD + '<section class="page-card">' + BACKUP_HTML
+            + "</section>" + BASE_FOOT)
+    return render_template_string(html, church=CHURCH)
+
+
+@app.route("/backup/download")
+@login_required
+def backup_download():
+    tmp_path = DATABASE + ".tmp"
+    if os.path.exists(tmp_path):
+        os.remove(tmp_path)
+    src = sqlite3.connect(DATABASE)
+    dst = sqlite3.connect(tmp_path)
+    src.backup(dst)
+    dst.close()
+    src.close()
+    with open(tmp_path, "rb") as fh:
+        data = fh.read()
+    os.remove(tmp_path)
+    return send_file(
+        io.BytesIO(data), mimetype="application/octet-stream",
+        as_attachment=True,
+        download_name="rcbc-backup-" + date.today().isoformat() + ".db")
+
+
+@app.route("/backup/restore", methods=["POST"])
+@login_required
+def backup_restore():
+    if not is_super_admin():
+        return redirect(url_for("backup_page"))
+    f = request.files.get("backup_file")
+    if not f or not f.filename:
+        return redirect(url_for("backup_page"))
+    raw = f.read()
+    ok = raw[:16] == b"SQLite format 3\x00"
+    if ok:
+        probe_path = DATABASE + ".probe"
+        try:
+            with open(probe_path, "wb") as fh:
+                fh.write(raw)
+            probe = sqlite3.connect(probe_path)
+            tables = {r[0] for r in probe.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'")}
+            probe.close()
+            ok = {"members", "settings", "news"}.issubset(tables)
+        except Exception:
+            ok = False
+        if os.path.exists(probe_path):
+            os.remove(probe_path)
+    if not ok:
+        return redirect(url_for("backup_page"))
+    try:
+        if os.path.exists(DATABASE):
+            cur = sqlite3.connect(DATABASE)
+            saf = sqlite3.connect(DATABASE + ".safety")
+            cur.backup(saf)
+            saf.close()
+            cur.close()
+    except Exception:
+        pass
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
+    with open(DATABASE, "wb") as fh:
+        fh.write(raw)
+    init_db()
+    return redirect(url_for("home")@app.route("/footer-text", methods=["POST"])
 @login_required
 def footer_text_save():
     _set_setting("footer_text",

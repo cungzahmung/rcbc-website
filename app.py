@@ -3163,7 +3163,7 @@ def backup_restore():
     with open(DATABASE, "wb") as fh:
         fh.write(raw)
     init_db()
-    return redirect(url_for("home")
+    return redirect(url_for("home"))
 @app.route("/footer-text", methods=["POST"])
 @login_required
 def footer_text_save():

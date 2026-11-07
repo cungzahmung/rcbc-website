@@ -2321,7 +2321,7 @@ def home():
 <p><img src="/church-logo" alt="Church Logo" style="max-width:160px;max-height:160px;background:#fff;border:1px solid #e5ddd0;border-radius:8px;padding:6px"></p>
 {% else %}<p class="empty">Logo a um rih lo - a tanglei form in upload law page vialte background ah watermark in a lang lai.</p>{% endif %}
 <form method="post" enctype="multipart/form-data" action="/church-logo/upload">
-<label>Logo Photo (JPG, PNG, WebP, GIF, 8 MB tlun lo)</label>
+<label>Logo Photo (JPG, PNG, WebP, GIF, 8 MB nak in a ngan lo mi)</label>
 <input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" required>
 <button class="btn" type="submit">Upload Logo</button></form>
 {% if has_logo %}<form method="post" action="/church-logo/delete" onsubmit="return confirm('Logo hi hloh duh taktak maw? Watermark a lang ti lai lo.')" style="margin-top:10px"><button type="submit">Logo Hloh / Remove Logo</button></form>{% endif %}

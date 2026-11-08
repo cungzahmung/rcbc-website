@@ -1874,14 +1874,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#c9a227;box-sh
 <header><h1>Raleigh Chin Baptist Church</h1><div class="marquee"><span class="marquee-in">{{ church.tagline }}</span></div></header>
 <nav>
 <a href="/" class="{{ 'active' if active=='home' }}">Home</a>
-<a href="/directory" class="{{ 'active' if active=='directory' }}">Directory</a>
+{% if is_admin %}<a href="/directory" class="{{ 'active' if active=='directory' }}">Directory</a>{% endif %}
 <a href="/church-event" class="{{ 'active' if active in ['church-event','bupi','youth','ce','mission','nubu','civil'] }}">Church Event</a>
 <a href="/church-leaders" class="{{ 'active' if active=='leaders' }}">Church Leaders</a>
 <a href="/church-news" class="{{ 'active' if active=='news' }}">Church News</a>
 <a href="/about" class="{{ 'active' if active=='about' }}">About Us</a>
 <a href="/pathian-bia" class="{{ 'active' if active=='scripture' }}">Pathian Bia</a>
 <a href="/caan-ngeitu" class="{{ 'active' if active=='caan' }}">Caan Ngeitu</a>
-{% if is_admin %}<a href="/logout">Logout (Admin)</a>{% else %}<a href="/login" class="{{ 'active' if active=='login' }}">Admin Login</a>{% endif %}
+{% if is_admin %}<a href="/logout">Logout (Admin)</a>{% endif %}
 {% if is_super %}<a href="/admin-users" class="{{ 'active' if active=='users' }}">Admin Users</a>{% endif %}
 <button type="button" id="themeToggle" class="theme-btn" aria-label="Day / Night mode">&#127769; Night</button>
 </nav>{% if is_admin %}<div style="background:#fdf0c9;color:#5b1f1f;text-align:center;padding:9px;font-family:Arial,sans-serif;font-size:14px">Admin in na lut cang{% if admin_label %} - <strong>{{ admin_label }}</strong>{% endif %} - edit tuah khawh a si. {% if not is_super %}<a href="/change-password">Password Thlen</a> &middot; {% endif %}<a href="/backup">Backup</a> &middot; <a href="/logout">Logout</a></div>{% endif %}<main>
@@ -1891,7 +1891,7 @@ BASE_FOOT = """
 {% if church.address %} &middot; {{ church.address }}{% endif %}
 {% if church.phone %} &middot; {{ church.phone }}{% endif %}
 {% if church.email %} &middot; {{ church.email }}{% endif %}<br>
-{{ footer_text }}</footer>
+{{ footer_text }}{% if not is_admin %}<span style="float:right"><a href="/login" style="color:#ffe9a8">Admin Login</a></span>{% endif %}</footer>
 {% if is_admin %}<div class="footer-edit-wrap"><details class="edit-box footer-edit"><summary>Footer Copyright Edit</summary>
 <form method="post" action="/footer-text">
 <label>Copyright cafang / Copyright text</label>
@@ -2311,7 +2311,7 @@ def home():
 })();
 </script>
 <div class="grid">
-<div class="card"><h3>Directory</h3><p>Chungtel min le address kawl.</p><a href="/directory">Directory &rarr;</a></div>
+{% if is_admin %}<div class="card"><h3>Directory</h3><p>Chungtel min le address kawl.</p><a href="/directory">Directory &rarr;</a></div>{% endif %}
 <div class="card"><h3>Church Event</h3><p>Bupi, Youth, CE, Mission, Nubu le Civil department events.</p><a href="/church-event">Church Event &rarr;</a></div>
 <div class="card"><h3>Church News</h3><p>Thuthang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
 <div class="card"><h3>Pathian Bia</h3><p>Thawngtha bia - Pathian bia rel khawh.</p><a href="/pathian-bia">Pathian Bia &rarr;</a></div>
@@ -2597,7 +2597,20 @@ EVENT_DEPARTMENTS = [
 @app.route("/church-event")
 def church_event():
     today = date.today()
-    prefix = f"{today.year:04d}-{today.month:02d}-"
+    try:
+        year = int(request.args.get("year", today.year))
+        month = int(request.args.get("month", today.month))
+        if not 1 <= month <= 12:
+            raise ValueError
+    except ValueError:
+        year, month = today.year, today.month
+    merged = {}
+    for dept in EVENT_DEPARTMENTS:
+        for day, evs in get_events(dept["cat"]).items():
+            for ev in evs:
+                merged.setdefault(day, []).append(ev)
+    cal = build_calendar(year, month, merged)
+    prefix = f"{year:04d}-{month:02d}-"
     combined = []
     for dept in EVENT_DEPARTMENTS:
         for ev in sorted_events(get_events(dept["cat"])):
@@ -2606,13 +2619,6 @@ def church_event():
                 row["dept"] = dept["label"]
                 combined.append(row)
     combined.sort(key=lambda e: e["date"])
-    combined_all = []
-    for dept in EVENT_DEPARTMENTS:
-        for ev in sorted_events(get_events(dept["cat"])):
-            row = dict(ev)
-            row["dept"] = dept["label"]
-            combined_all.append(row)
-    combined_all.sort(key=lambda e: e["date"])
     html = BASE_HEAD + """
 <h2>Church Event</h2>
 <div class="card"><p>Khrihfabu pumpi le department cio i event pawl.
@@ -2620,23 +2626,25 @@ Department na duh mi thim law a calendar le a event pawl a lang lai.</p></div>
 <div class="grid">
 {% for d in departments %}<div class="card"><h3>{{ d.label }}</h3><p>{{ d.desc }}</p><a href="{{ d.url }}">{{ d.label }} Event &rarr;</a></div>
 {% endfor %}</div>
-<div class="card"><h3>Tuthla a Biapi mi Ni / This Month's Important Days</h3>
+<div class="card"><h3>{{ cal.month_name }} {{ cal.year }}</h3>
+<div class="cal-nav"><a href="?year={{cal.prev_y}}&month={{cal.prev_m}}">&larr; Previous</a>
+<span>{{ cal.month_name }} {{ cal.year }}</span>
+<a href="?year={{cal.next_y}}&month={{cal.next_m}}">Next &rarr;</a></div>
+<table class="cal"><tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>
+{% for week in cal.weeks %}<tr>{% for d in week %}
+{% if d is none %}<td class="empty"></td>{% else %}<td><strong>{{ d.day }}</strong>
+{% for ev in d.events %}<div class="ev">{{ ev.title }}{% if ev.time %}<br>{{ ev.time }}{% endif %}{% if ev.note %}<br><em>{{ ev.note }}</em>{% endif %}</div>{% endfor %}</td>{% endif %}
+{% endfor %}</tr>{% endfor %}</table></div>
+<div class="card"><h3>A Biapi mi Ni / Important Days - {{ cal.month_name }} {{ cal.year }}</h3>
 {% if month_events %}<div class="table-wrap"><table>
 <tr><th>Ni / Date</th><th>Department</th><th>Event</th><th>Caan / Time</th><th>Hmun / Place</th></tr>
 {% for ev in month_events %}<tr><td>{{ ev.date }}</td><td>{{ ev.dept }}</td><td>{{ ev.title }}</td><td>{{ ev.time }}</td><td>{{ ev.place }}</td></tr>
 {% endfor %}</table></div>
-{% else %}<p class="empty">Tuthla cu event a um rih lo.</p>{% endif %}</div>
-<div class="card"><h3>Events Dihlak / All Events</h3>
-{% if all_events %}<div class="table-wrap"><table>
-<tr><th>Ni / Date</th><th>Department</th><th>Event</th><th>Caan / Time</th><th>Hmun / Place</th></tr>
-{% for ev in all_events %}<tr><td>{{ ev.date }}</td><td>{{ ev.dept }}</td><td>{{ ev.title }}</td><td>{{ ev.time }}</td><td>{{ ev.place }}</td></tr>
-{% endfor %}</table></div>
-{% else %}<p class="empty">Event a um rih lo.</p>{% endif %}</div>
+{% else %}<p class="empty">{{ cal.month_name }} ah event a um rih lo.</p>{% endif %}</div>
 """ + BASE_FOOT
     return render_template_string(
         html, title="Church Event", active="church-event", church=CHURCH,
-        departments=EVENT_DEPARTMENTS, month_events=combined,
-        all_events=combined_all,
+        departments=EVENT_DEPARTMENTS, month_events=combined, cal=cal,
     )
 
 

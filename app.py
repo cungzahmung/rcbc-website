@@ -2699,7 +2699,7 @@ le Picture chiah law a save cang lai, website na restart zongah
 a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB tlun lo ding.</p>
 <form method="post" enctype="multipart/form-data">
 <label>Name / Min *</label>
-<input name="name" required placeholder="e.g. Pastor Hming">
+<input name="name" required placeholder="e.g. Pastor min">
 <label>Position / Rian</label>
 <select name="position">{% for pos in positions %}<option value="{{ pos }}">{{ pos }}</option>{% endfor %}<option value="Other">Other</option></select>
 <label>Other Position (Other na thim ahcun tial)</label>
@@ -3440,7 +3440,7 @@ CAAN_EDIT_HTML = """
 <label>Rian le A Ngeitu / Duty Rows</label>
 <div class="duty-rows">{% for it in items %}<div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu" value="{{ it.role }}">
-<input name="person" placeholder="A Ngeitu - e.g. Upa Hming" value="{{ it.person }}">
+<input name="person" placeholder="A Ngeitu - e.g. Upa min" value="{{ it.person }}">
 <button type="button" class="remove-duty-row">Hloh</button></div>{% endfor %}
 <div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu">

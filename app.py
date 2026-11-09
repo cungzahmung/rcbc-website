@@ -1885,11 +1885,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#c9a227;box-sh
 </nav>{% if is_admin %}<div style="background:#fdf0c9;color:#5b1f1f;text-align:center;padding:9px;font-family:Arial,sans-serif;font-size:14px">Admin in na lut cang{% if admin_label %} - <strong>{{ admin_label }}</strong>{% endif %} - edit tuah khawh a si. {% if not is_super %}<a href="/change-password">Password Thlen</a> &middot; {% endif %}<a href="/backup">Backup</a> &middot; <a href="/logout">Logout</a></div>{% endif %}<main>
 """
 BASE_FOOT = """
-</main><footer>{{ footer_text }}{% if not is_admin %}<span style="float:right"><a href="/login" style="color:#ffe9a8">Admin Login</a></span>{% endif %}<br>
-Raleigh Chin Baptist Church
+</main><footer>Raleigh Chin Baptist Church
 {% if church.address %} &middot; {{ church.address }}{% endif %}
 {% if church.phone %} &middot; {{ church.phone }}{% endif %}
-{% if church.email %} &middot; {{ church.email }}{% endif %}</footer>
+{% if church.email %} &middot; {{ church.email }}{% endif %}<br>
+{{ footer_text }}{% if not is_admin %}<span style="float:right"><a href="/login" style="color:#ffe9a8">Admin Login</a></span>{% endif %}</footer>
 {% if is_admin %}<div class="footer-edit-wrap"><details class="edit-box footer-edit"><summary>Footer Copyright Edit</summary>
 <form method="post" action="/footer-text">
 <label>Copyright cafang / Copyright text</label>

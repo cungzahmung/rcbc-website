@@ -1363,6 +1363,7 @@ def init_db():
 
 
 init_db()
+init_auto_backup()
 
 
 def get_news():
@@ -3103,7 +3104,187 @@ def get_footer_text():
 
 
 
+# ------------------------------------------------------------------
+# GitHub Auto-Backup: admin edit na tuah paoh ah database cu
+# GitHub PRIVATE repo ah amah tein a fim; website a restart /
+# deploy i database a lawng a si ahcun a thawk ah amah tein a
+# lak kir. Env var GITHUB_BACKUP_TOKEN a um lo ahcun a kal lo.
+# ------------------------------------------------------------------
+import json as _gh_json
+import threading as _gh_threading
+import time as _gh_time
+import urllib.error as _gh_urlerr
+import urllib.request as _gh_urlreq
+
+GH_BACKUP_REPO = os.environ.get("GITHUB_BACKUP_REPO",
+                                "cungzahmung/rcbc-backup")
+GH_BACKUP_PATH = "church_directory.db"
+_gh_state = {"dirty": False, "since": 0.0}
+
+
+def _gh_token():
+    return os.environ.get("GITHUB_BACKUP_TOKEN", "").strip()
+
+
+def _gh_api(method, path, payload=None, raw=False):
+    req = _gh_urlreq.Request("https://api.github.com" + path,
+                             method=method)
+    req.add_header("Authorization", "Bearer " + _gh_token())
+    req.add_header("Accept", "application/vnd.github.raw" if raw
+                   else "application/vnd.github+json")
+    req.add_header("X-GitHub-Api-Version", "2022-11-28")
+    data = None
+    if payload is not None:
+        data = _gh_json.dumps(payload).encode("utf-8")
+        req.add_header("Content-Type", "application/json")
+    with _gh_urlreq.urlopen(req, data=data, timeout=30) as resp:
+        body = resp.read()
+    if raw:
+        return body
+    return _gh_json.loads(body.decode("utf-8")) if body else {}
+
+
+def _gh_snapshot_bytes():
+    tmp_path = DATABASE + ".ghtmp"
+    if os.path.exists(tmp_path):
+        os.remove(tmp_path)
+    src = sqlite3.connect(DATABASE)
+    dst = sqlite3.connect(tmp_path)
+    src.backup(dst)
+    dst.close()
+    src.close()
+    with open(tmp_path, "rb") as fh:
+        data = fh.read()
+    os.remove(tmp_path)
+    return data
+
+
+def _gh_upload_backup():
+    """Database snapshot kha GitHub repo ah commit tuah."""
+    data = _gh_snapshot_bytes()
+    repo = "/repos/" + GH_BACKUP_REPO
+    blob = _gh_api("POST", repo + "/git/blobs", {
+        "content": base64.b64encode(data).decode("ascii"),
+        "encoding": "base64",
+    })
+    head_sha = None
+    tree_sha = None
+    try:
+        ref = _gh_api("GET", repo + "/git/ref/heads/main")
+        head_sha = ref["object"]["sha"]
+        commit = _gh_api("GET", repo + "/git/commits/" + head_sha)
+        tree_sha = commit["tree"]["sha"]
+    except _gh_urlerr.HTTPError as e:
+        if e.code != 404:
+            raise
+    tree_payload = {"tree": [{"path": GH_BACKUP_PATH, "mode": "100644",
+                              "type": "blob", "sha": blob["sha"]}]}
+    if tree_sha:
+        tree_payload["base_tree"] = tree_sha
+    tree = _gh_api("POST", repo + "/git/trees", tree_payload)
+    commit_payload = {"message": "Auto-backup " + date.today().isoformat(),
+                      "tree": tree["sha"]}
+    if head_sha:
+        commit_payload["parents"] = [head_sha]
+    new_commit = _gh_api("POST", repo + "/git/commits", commit_payload)
+    if head_sha:
+        _gh_api("PATCH", repo + "/git/refs/heads/main",
+                {"sha": new_commit["sha"]})
+    else:
+        _gh_api("POST", repo + "/git/refs",
+                {"ref": "refs/heads/main", "sha": new_commit["sha"]})
+    try:
+        db = sqlite3.connect(DATABASE)
+        db.execute("INSERT OR REPLACE INTO settings (key, value) "
+                   "VALUES ('gh_backup_at', ?)",
+                   (date.today().isoformat(),))
+        db.commit()
+        db.close()
+    except Exception:
+        pass
+
+
+def _gh_download_backup():
+    repo = "/repos/" + GH_BACKUP_REPO
+    return _gh_api("GET", repo + "/contents/" + GH_BACKUP_PATH, raw=True)
+
+
+def _db_is_empty():
+    try:
+        db = sqlite3.connect(DATABASE)
+        n = 0
+        for tbl in ("members", "news", "events"):
+            n += db.execute("SELECT COUNT(*) FROM " + tbl).fetchone()[0]
+        db.close()
+        return n == 0
+    except Exception:
+        return False
+
+
+def _gh_restore_if_empty():
+    """Data a um cang ahcun a tongh lo; a lawng lawng a si ahcun
+    GitHub backup in a lak kir."""
+    if not _gh_token():
+        return
+    try:
+        if not _db_is_empty():
+            return
+        raw = _gh_download_backup()
+        if raw[:16] != b"SQLite format 3\x00":
+            return
+        with open(DATABASE, "wb") as fh:
+            fh.write(raw)
+        init_db()
+        print("GitHub auto-restore: backup in data lak kir a si.")
+    except Exception as e:
+        print("GitHub auto-restore a tling lo:", e)
+
+
+def _gh_worker():
+    while True:
+        _gh_time.sleep(20)
+        try:
+            if (_gh_state["dirty"]
+                    and _gh_time.time() - _gh_state["since"] > 30):
+                _gh_state["dirty"] = False
+                _gh_upload_backup()
+                print("GitHub auto-backup: a tling.")
+        except Exception as e:
+            _gh_state["dirty"] = True
+            _gh_state["since"] = _gh_time.time() + 600
+            print("GitHub auto-backup a tling lo:", e)
+
+
+def init_auto_backup():
+    """Live site thawk ah hmet ding (Render copy lawng a hmet)."""
+    if not _gh_token():
+        return
+    _gh_restore_if_empty()
+    t = _gh_threading.Thread(target=_gh_worker, daemon=True)
+    t.start()
+
+
+@app.after_request
+def _gh_mark_dirty(response):
+    try:
+        if (request.method == "POST" and _gh_token() and is_admin()
+                and response.status_code < 400):
+            _gh_state["dirty"] = True
+            _gh_state["since"] = _gh_time.time()
+    except Exception:
+        pass
+    return response
+
+
 BACKUP_HTML = """
+{% if gh_on %}<div class="card">
+<h2>GitHub Auto-Backup: ON</h2>
+<p>Data cu GitHub private repo <strong>{{ gh_repo }}</strong> ah amah tein
+a fim peng - deploy / restart in data a tlau ti lai lo, a lawng a si
+ahcun amah tein a kir lai.
+{% if gh_at %}<br>A hnu bik auto-backup ni: {{ gh_at }}{% endif %}</p>
+</div>
+{% endif %}
 <div class="card">
 <h2>Backup - Data Fimnak</h2>
 <p>Post cia mi (Directory, News, Event, Leaders, Photo...) vialte cu database
@@ -3130,7 +3311,9 @@ ah a um peng lai (kir than khawh a si).</p>
 def backup_page():
     html = (BASE_HEAD + '<section class="page-card">' + BACKUP_HTML
             + "</section>" + BASE_FOOT)
-    return render_template_string(html, church=CHURCH)
+    return render_template_string(
+        html, church=CHURCH, gh_on=bool(_gh_token()),
+        gh_repo=GH_BACKUP_REPO, gh_at=_get_setting("gh_backup_at", ""))
 
 
 @app.route("/backup/download")

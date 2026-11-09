@@ -1377,7 +1377,7 @@ import urllib.request as _gh_urlreq
 GH_BACKUP_REPO = os.environ.get("GITHUB_BACKUP_REPO",
                                 "cungzahmung/rcbc-backup")
 GH_BACKUP_PATH = "church_directory.db"
-_gh_state = {"dirty": False, "since": 0.0}
+_gh_state = {"dirty": False, "since": 0.0, "last_result": ""}
 
 
 def _gh_token():
@@ -1506,10 +1506,13 @@ def _gh_worker():
                     and _gh_time.time() - _gh_state["since"] > 30):
                 _gh_state["dirty"] = False
                 _gh_upload_backup()
+                _gh_state["last_result"] = ("A tling - "
+                                            + date.today().isoformat())
                 print("GitHub auto-backup: a tling.", flush=True)
         except Exception as e:
             _gh_state["dirty"] = True
             _gh_state["since"] = _gh_time.time() + 600
+            _gh_state["last_result"] = "A tling lo: " + str(e)
             print("GitHub auto-backup a tling lo:", e, flush=True)
 
 
@@ -1520,6 +1523,7 @@ def init_auto_backup():
     _gh_restore_if_empty()
     t = _gh_threading.Thread(target=_gh_worker, daemon=True)
     t.start()
+    print("GitHub auto-backup worker a thawk cang.", flush=True)
 
 
 @app.after_request
@@ -3408,6 +3412,9 @@ BACKUP_HTML = """
 a fim peng - deploy / restart in data a tlau ti lai lo, a lawng a si
 ahcun amah tein a kir lai.
 {% if gh_at %}<br>A hnu bik auto-backup ni: {{ gh_at }}{% endif %}</p>
+{% if gh_pending %}<p class="err-note">Backup pending: edit thar a um rih — a tang i button in atu backup khawh a si.</p>{% endif %}
+{% if gh_result %}<p class="ok-note">A hnu bik backup try: {{ gh_result }}</p>{% endif %}
+<form method="post" action="/backup/github-now"><button class="btn" type="submit">GitHub Ah Atu Backup Tuah / Backup Now</button></form>
 </div>
 {% endif %}
 <div class="card">
@@ -3434,11 +3441,42 @@ ah a um peng lai (kir than khawh a si).</p>
 @app.route("/backup")
 @login_required
 def backup_page():
+    if (_gh_token() and _gh_state.get("dirty")
+            and _gh_time.time() - _gh_state.get("since", 0) > 30):
+        try:
+            _gh_upload_backup()
+            _gh_state["dirty"] = False
+            _gh_state["last_result"] = ("A tling - "
+                                        + date.today().isoformat())
+            print("GitHub auto-backup (Backup page): a tling.",
+                  flush=True)
+        except Exception as e:
+            _gh_state["last_result"] = "A tling lo: " + str(e)
+            print("GitHub auto-backup (Backup page) a tling lo:", e,
+                  flush=True)
     html = (BASE_HEAD + '<section class="page-card">' + BACKUP_HTML
             + "</section>" + BASE_FOOT)
     return render_template_string(
         html, church=CHURCH, gh_on=bool(_gh_token()),
-        gh_repo=GH_BACKUP_REPO, gh_at=_get_setting("gh_backup_at", ""))
+        gh_repo=GH_BACKUP_REPO, gh_at=_get_setting("gh_backup_at", ""),
+        gh_pending=bool(_gh_state.get("dirty")),
+        gh_result=_gh_state.get("last_result", ""))
+
+
+@app.route("/backup/github-now", methods=["POST"])
+@login_required
+def backup_github_now():
+    try:
+        _gh_upload_backup()
+        _gh_state["dirty"] = False
+        _gh_state["last_result"] = ("A tling - "
+                                    + date.today().isoformat())
+        print("GitHub auto-backup (Backup Now): a tling.", flush=True)
+    except Exception as e:
+        _gh_state["last_result"] = "A tling lo: " + str(e)
+        print("GitHub auto-backup (Backup Now) a tling lo:", e,
+              flush=True)
+    return redirect(url_for("backup_page"))
 
 
 @app.route("/backup/download")

@@ -1151,7 +1151,6 @@ YOUTH_EVENTS = {}
 CE_EVENTS = {}
 MISSION_EVENTS = {}
 NUBU_EVENTS = {}
-CIVIL_EVENTS = {}
 
 # ------------------------------------------------------------------
 # Directory database (SQLite)
@@ -1655,7 +1654,6 @@ EVENT_CATEGORIES = {
     "ce": CE_EVENTS,
     "mission": MISSION_EVENTS,
     "nubu": NUBU_EVENTS,
-    "civil": CIVIL_EVENTS,
 }
 
 
@@ -1875,7 +1873,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#c9a227;box-sh
 <nav>
 <a href="/" class="{{ 'active' if active=='home' }}">Home</a>
 {% if is_admin %}<a href="/directory" class="{{ 'active' if active=='directory' }}">Directory</a>{% endif %}
-<a href="/church-event" class="{{ 'active' if active in ['church-event','bupi','youth','ce','mission','nubu','civil'] }}">Church Event</a>
+<a href="/church-event" class="{{ 'active' if active in ['church-event','bupi','youth','ce','mission','nubu'] }}">Church Event</a>
 <a href="/church-leaders" class="{{ 'active' if active=='leaders' }}">Church Leaders</a>
 <a href="/church-news" class="{{ 'active' if active=='news' }}">Church News</a>
 <a href="/about" class="{{ 'active' if active=='about' }}">About Us</a>
@@ -1887,11 +1885,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#c9a227;box-sh
 </nav>{% if is_admin %}<div style="background:#fdf0c9;color:#5b1f1f;text-align:center;padding:9px;font-family:Arial,sans-serif;font-size:14px">Admin in na lut cang{% if admin_label %} - <strong>{{ admin_label }}</strong>{% endif %} - edit tuah khawh a si. {% if not is_super %}<a href="/change-password">Password Thlen</a> &middot; {% endif %}<a href="/backup">Backup</a> &middot; <a href="/logout">Logout</a></div>{% endif %}<main>
 """
 BASE_FOOT = """
-</main><footer>Raleigh Chin Baptist Church
+</main><footer>{{ footer_text }}{% if not is_admin %}<span style="float:right"><a href="/login" style="color:#ffe9a8">Admin Login</a></span>{% endif %}<br>
+Raleigh Chin Baptist Church
 {% if church.address %} &middot; {{ church.address }}{% endif %}
 {% if church.phone %} &middot; {{ church.phone }}{% endif %}
-{% if church.email %} &middot; {{ church.email }}{% endif %} &middot;
-{{ footer_text }}{% if not is_admin %}<span style="float:right"><a href="/login" style="color:#ffe9a8">Admin Login</a></span>{% endif %}</footer>
+{% if church.email %} &middot; {{ church.email }}{% endif %}</footer>
 {% if is_admin %}<div class="footer-edit-wrap"><details class="edit-box footer-edit"><summary>Footer Copyright Edit</summary>
 <form method="post" action="/footer-text">
 <label>Copyright cafang / Copyright text</label>
@@ -2312,7 +2310,7 @@ def home():
 </script>
 <div class="grid">
 {% if is_admin %}<div class="card"><h3>Directory</h3><p>Chungtel min le address kawl.</p><a href="/directory">Directory &rarr;</a></div>{% endif %}
-<div class="card"><h3>Church Event</h3><p>Bupi, Youth, CE, Mission, Nubu le Civil department events.</p><a href="/church-event">Church Event &rarr;</a></div>
+<div class="card"><h3>Church Event</h3><p>Bupi, Youth, CE, Mission le Nubu department events.</p><a href="/church-event">Church Event &rarr;</a></div>
 <div class="card"><h3>Church News</h3><p>Thuthang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
 <div class="card"><h3>Pathian Bia</h3><p>Thawngtha bia - Pathian bia rel khawh.</p><a href="/pathian-bia">Pathian Bia &rarr;</a></div>
 <div class="card"><h3>Caan Ngeitu</h3><p>Pumhnak cio i rian ngeitu pawl.</p><a href="/caan-ngeitu">Caan Ngeitu &rarr;</a></div>
@@ -2571,10 +2569,6 @@ def nubu_event():
     return event_page("Nubu Event", "nubu", "nubu", "Nubu Event - Women")
 
 
-@app.route("/civil-event", methods=["GET", "POST"])
-def civil_event():
-    return event_page("Civil Event", "civil", "civil", "Civil Event - Biaknak lei pehtlai mi")
-
 
 # Church Event hub: department vialte hmunkhat ah; a tangah
 # tuthla i department vialte i a biapi mi ni fonh mi table.
@@ -2589,8 +2583,6 @@ EVENT_DEPARTMENTS = [
      "desc": "Mission department event pawl."},
     {"cat": "nubu", "label": "Nubu", "url": "/nubu-event",
      "desc": "Nubu (Women) department event pawl."},
-    {"cat": "civil", "label": "Civil", "url": "/civil-event",
-     "desc": "Biaknak lei pehtlai mi civil event pawl."},
 ]
 
 
@@ -2699,7 +2691,7 @@ le Picture chiah law a save cang lai, website na restart zongah
 a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB tlun lo ding.</p>
 <form method="post" enctype="multipart/form-data">
 <label>Name / Min *</label>
-<input name="name" required placeholder="e.g. Pastor min">
+<input name="name" required placeholder="e.g. Pastor Hming">
 <label>Position / Rian</label>
 <select name="position">{% for pos in positions %}<option value="{{ pos }}">{{ pos }}</option>{% endfor %}<option value="Other">Other</option></select>
 <label>Other Position (Other na thim ahcun tial)</label>
@@ -3103,7 +3095,7 @@ def get_about_text():
     return _get_setting("about_text", "") or DEFAULT_ABOUT
 
 
-DEFAULT_FOOTER_TEXT = "\u00a9 Raleigh Chin Baptist Church"
+DEFAULT_FOOTER_TEXT = "\u00a9 2026 RCBC"
 
 
 def get_footer_text():
@@ -3440,7 +3432,7 @@ CAAN_EDIT_HTML = """
 <label>Rian le A Ngeitu / Duty Rows</label>
 <div class="duty-rows">{% for it in items %}<div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu" value="{{ it.role }}">
-<input name="person" placeholder="A Ngeitu - e.g. Upa min" value="{{ it.person }}">
+<input name="person" placeholder="A Ngeitu - e.g. Upa Hming" value="{{ it.person }}">
 <button type="button" class="remove-duty-row">Hloh</button></div>{% endfor %}
 <div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu">

@@ -1433,7 +1433,7 @@ def _gh_upload_backup():
         commit = _gh_api("GET", repo + "/git/commits/" + head_sha)
         tree_sha = commit["tree"]["sha"]
     except _gh_urlerr.HTTPError as e:
-        if e.code != 404:
+        if e.code not in (404, 409):
             raise
     tree_payload = {"tree": [{"path": GH_BACKUP_PATH, "mode": "100644",
                               "type": "blob", "sha": blob["sha"]}]}
@@ -1493,9 +1493,9 @@ def _gh_restore_if_empty():
         with open(DATABASE, "wb") as fh:
             fh.write(raw)
         init_db()
-        print("GitHub auto-restore: backup in data lak kir a si.")
+        print("GitHub auto-restore: backup in data lak kir a si.", flush=True)
     except Exception as e:
-        print("GitHub auto-restore a tling lo:", e)
+        print("GitHub auto-restore a tling lo:", e, flush=True)
 
 
 def _gh_worker():
@@ -1506,11 +1506,11 @@ def _gh_worker():
                     and _gh_time.time() - _gh_state["since"] > 30):
                 _gh_state["dirty"] = False
                 _gh_upload_backup()
-                print("GitHub auto-backup: a tling.")
+                print("GitHub auto-backup: a tling.", flush=True)
         except Exception as e:
             _gh_state["dirty"] = True
             _gh_state["since"] = _gh_time.time() + 600
-            print("GitHub auto-backup a tling lo:", e)
+            print("GitHub auto-backup a tling lo:", e, flush=True)
 
 
 def init_auto_backup():
@@ -2023,6 +2023,22 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#c9a227;box-sh
 .hero-verse{font-size:clamp(18px,4.4vw,25px);font-style:italic;margin:14px auto 2px;max-width:640px;line-height:1.45}
 .hero-ref{color:#ffe9a8;margin:0 0 14px;font-size:15px;letter-spacing:1px}
 .hero-chips{margin:10px 0 4px}
+.slideshow{position:relative;border-radius:16px;overflow:hidden;margin:16px 0;box-shadow:0 12px 32px rgba(20,10,20,.25);background:#222;aspect-ratio:16/9}
+.slideshow .slide{position:absolute;inset:0;opacity:0;transition:opacity .8s ease}
+.slideshow .slide.on{opacity:1;z-index:1}
+.slideshow .slide img{width:100%;height:100%;object-fit:cover;display:block}
+.slide-cap{position:absolute;left:0;right:0;bottom:0;padding:26px 76px 12px 16px;color:#fff;font-size:15px;background:linear-gradient(transparent,rgba(0,0,0,.65))}
+.slide-dots{position:absolute;right:12px;bottom:12px;display:flex;gap:6px;z-index:2}
+.slide-dots button{width:9px;height:9px;border-radius:50%;border:0;background:rgba(255,255,255,.45);padding:0;cursor:pointer}
+.slide-dots button.on{background:#ffe9a8}
+@media (max-width:640px){.slideshow{aspect-ratio:4/3}.slide-cap{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.slideshow .slide{transition:none}}
+.social-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.social-btn{display:inline-block;padding:10px 22px;border-radius:999px;color:#fff;font-weight:700;text-decoration:none}
+.social-btn.fb{background:#1877f2}
+.social-btn.ig{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}
+.ok-note{background:#e7f6e7;border:1px solid #9ccc9c;border-radius:8px;padding:10px 12px}
+.err-note{background:#fdeaea;border:1px solid #e5a3a3;border-radius:8px;padding:10px 12px}
 .chip{display:inline-block;border:1px solid #c9a227;color:#ffe9a8;border-radius:20px;padding:6px 14px;margin:4px;font-size:14px;background:rgba(255,255,255,.06)}
 .cd-title{margin-top:18px;font-size:15px;color:#ffe9a8;letter-spacing:.4px}
 .cd{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
@@ -2481,6 +2497,29 @@ def home():
  tick(); setInterval(tick,1000);
 })();
 </script>
+{% if photos %}
+<div class="slideshow" id="rcbcSlides">
+{% for p in photos %}<div class="slide{% if loop.first %} on{% endif %}"><img src="/gallery-photo/{{ p.id }}" alt="{{ p.caption or 'Church activity photo' }}"{% if not loop.first %} loading="lazy"{% endif %}>{% if p.caption %}<div class="slide-cap">{{ p.caption }}</div>{% endif %}</div>
+{% endfor %}{% if photos|length > 1 %}<div class="slide-dots">{% for p in photos %}<button type="button" aria-label="Photo {{ loop.index }}"{% if loop.first %} class="on"{% endif %}></button>{% endfor %}</div>{% endif %}
+</div>
+<script>
+(function(){
+ var box=document.getElementById('rcbcSlides'); if(!box) return;
+ var slides=box.querySelectorAll('.slide'), dots=box.querySelectorAll('.slide-dots button');
+ if(slides.length<2) return;
+ var i=0, timer=null;
+ function show(n){ slides[i].classList.remove('on'); if(dots[i]) dots[i].classList.remove('on');
+  i=(n+slides.length)%slides.length;
+  slides[i].classList.add('on'); if(dots[i]) dots[i].classList.add('on'); }
+ function start(){ if(!timer && !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  timer=setInterval(function(){ show(i+1); },3000); }
+ function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+ for(var d=0; d<dots.length; d++){ (function(n){ dots[n].addEventListener('click',function(){ stop(); show(n); start(); }); })(d); }
+ box.addEventListener('mouseenter',stop); box.addEventListener('mouseleave',start);
+ start();
+})();
+</script>
+{% endif %}
 <div class="grid">
 {% if is_admin %}<div class="card"><h3>Directory</h3><p>Chungtel min le address kawl.</p><a href="/directory">Directory &rarr;</a></div>{% endif %}
 <div class="card"><h3>Church Event</h3><p>Bupi, Youth, CE, Mission le Nubu department events.</p><a href="/church-event">Church Event &rarr;</a></div>
@@ -2503,7 +2542,8 @@ def home():
 {% if has_logo %}<form method="post" action="/church-logo/delete" onsubmit="return confirm('Logo hi hloh duh taktak maw? Watermark a lang ti lai lo.')" style="margin-top:10px"><button type="submit">Logo Hloh / Remove Logo</button></form>{% endif %}
 </div>{% endif %}
 """ + BASE_FOOT
-    return render_template_string(html, title="Home", active="home", church=CHURCH, news=get_news(), times=get_service_times())
+    return render_template_string(html, title="Home", active="home", church=CHURCH, news=get_news(), times=get_service_times(),
+                            photos=get_gallery_photos())
 
 
 @app.route("/directory", methods=["GET", "POST"])
@@ -2864,7 +2904,7 @@ le Picture chiah law a save cang lai, website na restart zongah
 a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB tlun lo ding.</p>
 <form method="post" enctype="multipart/form-data">
 <label>Name / Min *</label>
-<input name="name" required placeholder="e.g. Pastor min">
+<input name="name" required placeholder="e.g. Pastor Hming">
 <label>Position / Rian</label>
 <select name="position">{% for pos in positions %}<option value="{{ pos }}">{{ pos }}</option>{% endfor %}<option value="Other">Other</option></select>
 <label>Other Position (Other na thim ahcun tial)</label>
@@ -3264,6 +3304,91 @@ DEFAULT_ABOUT = (
 )
 
 
+def _valid_url(u):
+    return u.startswith("http://") or u.startswith("https://")
+
+
+def get_social_links():
+    return {
+        "facebook": _get_setting("facebook_url", ""),
+        "instagram": _get_setting("instagram_url", ""),
+    }
+
+
+@app.route("/about/social", methods=["POST"])
+def about_social():
+    if not is_admin():
+        return redirect(url_for("login", next="/about"))
+    for key, field in (("facebook_url", "facebook_url"),
+                       ("instagram_url", "instagram_url")):
+        url = request.form.get(field, "").strip()
+        _set_setting(key, url if _valid_url(url) else "")
+    return redirect(url_for("about"))
+
+
+def contact_config():
+    to = os.environ.get("RCBC_CONTACT_TO", "").strip()
+    user = os.environ.get("RCBC_SMTP_USER", "").strip() or to
+    pw = os.environ.get("RCBC_SMTP_PASS", "").strip()
+    return {"to": to, "user": user, "pw": pw,
+            "on": bool(to and user and pw)}
+
+
+_contact_last = {}
+
+
+@app.route("/contact", methods=["POST"])
+def contact_send():
+    import smtplib as _smtp
+    from email.message import EmailMessage as _EM
+    back = url_for("about")
+    if request.form.get("website", ""):
+        return redirect(back + "?sent=1#contact")
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip()
+    phone = request.form.get("phone", "").strip()
+    topic = request.form.get("topic", "Message").strip()
+    if topic not in ("Message", "Prayer Request"):
+        topic = "Message"
+    message = request.form.get("message", "").strip()
+    email_ok = ("@" in email and "." in email.split("@")[-1]
+                and " " not in email and len(email) <= 120)
+    if not (name and email_ok and message) or len(message) > 4000:
+        return redirect(back + "?sent=0#contact")
+    now = _gh_time.time()
+    if now - _contact_last.get(request.remote_addr or "", 0) < 30:
+        return redirect(back + "?sent=0#contact")
+    _contact_last[request.remote_addr or ""] = now
+    cfg = contact_config()
+    if not cfg["on"]:
+        print("Contact form: SMTP env var a um lo (RCBC_CONTACT_TO / "
+              "RCBC_SMTP_USER / RCBC_SMTP_PASS).", flush=True)
+        return redirect(back + "?sent=0#contact")
+    msg = _EM()
+    msg["From"] = cfg["user"]
+    msg["To"] = cfg["to"]
+    msg["Reply-To"] = email
+    msg["Subject"] = "[RCBC Website] " + topic + " - " + name
+    msg.set_content(
+        "RCBC website (rcbcnc.com) About page contact form in a ra mi:\n\n"
+        "Min / Name: " + name + "\n"
+        "Email: " + email + "\n"
+        "Phone: " + (phone or "-") + "\n"
+        "Topic: " + topic + "\n\n"
+        "Thawng / Message:\n" + message + "\n")
+    try:
+        with _smtp.SMTP("smtp.gmail.com", 587, timeout=30) as s:
+            s.starttls()
+            s.login(cfg["user"], cfg["pw"])
+            s.send_message(msg)
+        print("Contact form: email kuat a tling (" + topic + ").",
+              flush=True)
+    except Exception as e:
+        print("Contact form kuat a tling lo:", e, flush=True)
+        return redirect(back + "?sent=0#contact")
+    return redirect(back + "?sent=1#contact")
+
+
 def get_about_text():
     return _get_setting("about_text", "") or DEFAULT_ABOUT
 
@@ -3399,6 +3524,39 @@ def about():
     html = BASE_HEAD + """
 <h2>About Us / Kan Khrihfabu Kong</h2>
 <div class="card"><div style="white-space:pre-line;font-size:17px;line-height:1.75">{{ about_text }}</div></div>
+<div class="card"><h3>Connect With Us</h3>
+<p>Khrihfabu thawng le pumhnak video pawl cu kan Facebook le Instagram ah zoh khawh a si.</p>
+{% if social.facebook or social.instagram %}<div class="social-btns">
+{% if social.facebook %}<a class="social-btn fb" href="{{ social.facebook }}" target="_blank" rel="noopener">Facebook</a>{% endif %}
+{% if social.instagram %}<a class="social-btn ig" href="{{ social.instagram }}" target="_blank" rel="noopener">Instagram</a>{% endif %}
+</div>{% else %}<p class="empty">Link a um rih lo.</p>{% endif %}
+{% if is_admin %}<details class="edit-box"><summary>Link Edit / Remh</summary>
+<form method="post" action="/about/social">
+<label>Facebook Page URL</label>
+<input name="facebook_url" type="url" placeholder="https://www.facebook.com/..." value="{{ social.facebook }}">
+<label>Instagram URL</label>
+<input name="instagram_url" type="url" placeholder="https://www.instagram.com/..." value="{{ social.instagram }}">
+<button class="btn" type="submit">Save / Fim</button></form></details>{% endif %}
+</div>
+<div class="card" id="contact"><h3>Contact Us / Kan Sin Ah Thawng Kuat</h3>
+{% if sent == "1" %}<p class="ok-note">Kan lawm tuk — na thawng a phan cang. A rang khawh chungin kan in leh lai.</p>{% endif %}
+{% if sent == "0" %}<p class="err-note">A kal lo — na tial mi check ṭhan law a tanglei in kuat ṭhan tuah.</p>{% endif %}
+{% if contact_on %}<p>Thawng a si ah, thlacam sawnh (prayer request) a si ah — a tanglei form in kuat khawh a si. Na email le phone cu kan in lehnak ding lawngah kan hmang lai.</p>
+<form method="post" action="/contact">
+<label>Na Min / Your Name *</label>
+<input name="name" required maxlength="80">
+<label>Na Email *</label>
+<input name="email" type="email" required maxlength="120">
+<label>Phone Nambar / Phone</label>
+<input name="phone" maxlength="40">
+<label>Topic</label>
+<select name="topic"><option value="Message">Message / Thawng</option><option value="Prayer Request">Prayer Request / Thlacam Sawnh</option></select>
+<label>Na Thawng / Message *</label>
+<textarea name="message" rows="6" required maxlength="4000" placeholder="Na duh mi thawng silole thlacam sawnh hika hin tial..."></textarea>
+<input name="website" style="display:none" tabindex="-1" autocomplete="off">
+<button class="btn" type="submit">Kuat / Send</button></form>
+{% elif is_admin %}<p class="empty">Admin theih ding: contact form hi rian a ṭuan rih lo — Render Environment ah RCBC_CONTACT_TO, RCBC_SMTP_USER, RCBC_SMTP_PASS (Gmail App Password) chiah a hau rih.</p>{% endif %}
+</div>
 {% if is_admin %}<div class="card"><h3>About Edit / Church Information Edit</h3>
 <form method="post">
 <label>Church Information / Khrihfabu kong tialnak</label>
@@ -3408,6 +3566,9 @@ def about():
     return render_template_string(
         html, title="About Us", active="about", church=CHURCH,
         about_text=get_about_text(),
+        social=get_social_links(),
+        contact_on=contact_config()["on"],
+        sent=request.args.get("sent", ""),
     )
 
 
@@ -3615,7 +3776,7 @@ CAAN_EDIT_HTML = """
 <label>Rian le A Ngeitu / Duty Rows</label>
 <div class="duty-rows">{% for it in items %}<div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu" value="{{ it.role }}">
-<input name="person" placeholder="A Ngeitu - e.g. Upa min" value="{{ it.person }}">
+<input name="person" placeholder="A Ngeitu - e.g. Upa Hming" value="{{ it.person }}">
 <button type="button" class="remove-duty-row">Hloh</button></div>{% endfor %}
 <div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu">

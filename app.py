@@ -1890,7 +1890,7 @@ BASE_FOOT = """
 </main><footer>Raleigh Chin Baptist Church
 {% if church.address %} &middot; {{ church.address }}{% endif %}
 {% if church.phone %} &middot; {{ church.phone }}{% endif %}
-{% if church.email %} &middot; {{ church.email }}{% endif %}<br>
+{% if church.email %} &middot; {{ church.email }}{% endif %} &middot;
 {{ footer_text }}{% if not is_admin %}<span style="float:right"><a href="/login" style="color:#ffe9a8">Admin Login</a></span>{% endif %}</footer>
 {% if is_admin %}<div class="footer-edit-wrap"><details class="edit-box footer-edit"><summary>Footer Copyright Edit</summary>
 <form method="post" action="/footer-text">

@@ -3612,9 +3612,9 @@ def about():
 <label>Phone Nambar / Phone</label>
 <input name="phone" maxlength="40">
 <label>Topic</label>
-<select name="topic"><option value="Message">Message / Thawng</option><option value="Prayer Request">Prayer Request / Thlacam Sawnh</option></select>
+<select name="topic"><option value="Message">Message / Thawng</option><option value="Prayer Request">Prayer Request / Thlacam cah</option></select>
 <label>Na Thawng / Message *</label>
-<textarea name="message" rows="6" required maxlength="4000" placeholder="Na duh mi thawng silole thlacam sawnh hika hin tial..."></textarea>
+<textarea name="message" rows="6" required maxlength="4000" placeholder="Na duh mi thawng silole thlacam cah na duhmi hika hin tial..."></textarea>
 <input name="website" style="display:none" tabindex="-1" autocomplete="off">
 <button class="btn" type="submit">Kuat / Send</button></form>
 {% elif is_admin %}<p class="empty">Admin theih ding: contact form hi rian a ṭuan rih lo — Render Environment ah RCBC_CONTACT_TO, RCBC_SMTP_USER, RCBC_SMTP_PASS (Gmail App Password) chiah a hau rih.</p>{% endif %}

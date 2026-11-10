@@ -3603,7 +3603,7 @@ def about():
 <div class="card" id="contact"><h3>Contact Us / Kan Sin Ah Thawng Kuat</h3>
 {% if sent == "1" %}<p class="ok-note">Kan lawm tuk — na thawng a phan cang. A rang khawh chungin kan in leh lai.</p>{% endif %}
 {% if sent == "0" %}<p class="err-note">A kal lo — na tial mi check ṭhan law a tanglei in kuat ṭhan tuah.</p>{% endif %}
-{% if contact_on %}<p>Thawng a si ah, thlacam sawnh (prayer request) a si ah — a tanglei form in kuat khawh a si. Na email le phone cu kan in lehnak ding lawngah kan hmang lai.</p>
+{% if contact_on %}<p>Thawng a si ah, thlacam cah na duh mi (prayer request) a si ah — a tanglei form in kuat khawh a si. Na email le phone cu kan in lehnak ding lawngah kan hmang lai.</p>
 <form method="post" action="/contact">
 <label>Na Min / Your Name *</label>
 <input name="name" required maxlength="80">

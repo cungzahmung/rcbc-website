@@ -1339,6 +1339,11 @@ def init_db():
     if _mcols and "family_members" not in _mcols:
         db.execute(
             "ALTER TABLE members ADD COLUMN family_members TEXT DEFAULT ''")
+    _gcols = [r[1] for r in db.execute(
+        "PRAGMA table_info(gallery_photos)").fetchall()]
+    if _gcols and "album" not in _gcols:
+        db.execute(
+            "ALTER TABLE gallery_photos ADD COLUMN album TEXT DEFAULT ''")
     # Seed: code chung NEWS list in a voikhatnak lawng lut ter
     count = db.execute("SELECT COUNT(*) FROM news").fetchone()[0]
     if count == 0 and NEWS:
@@ -2074,6 +2079,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#c9a227;box-sh
 .cd .num{font-size:27px;font-weight:800;line-height:1}
 .cd .lab{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#ffe9a8;margin-top:4px}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.album-title{margin:18px 0 8px;font-size:17px}
+.album-count{font-size:13px;font-weight:400;opacity:.65}
 .g-item{margin:0}
 .g-item img{width:100%;height:150px;object-fit:cover;border-radius:10px;display:block;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .g-item figcaption{font-size:13px;margin-top:5px;color:var(--muted)}
@@ -2551,7 +2558,7 @@ def home():
 <div class="grid">
 {% if is_admin %}<div class="card"><h3>Directory</h3><p>Chungtel min le address kawl.</p><a href="/directory">Directory &rarr;</a></div>{% endif %}
 <div class="card"><h3>Church Event</h3><p>Bupi, Youth, CE, Mission le Nubu department events.</p><a href="/church-event">Church Event &rarr;</a></div>
-<div class="card"><h3>Church News</h3><p>Thawngpang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
+<div class="card"><h3>Church News</h3><p>Thuthang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
 <div class="card"><h3>Pathian Bia</h3><p>Thawngtha bia - Pathian bia rel khawh.</p><a href="/pathian-bia">Pathian Bia &rarr;</a></div>
 <div class="card"><h3>Caan Ngeitu</h3><p>Pumhnak cio i rian ngeitu pawl.</p><a href="/caan-ngeitu">Caan Ngeitu &rarr;</a></div>
 </div>
@@ -2932,7 +2939,7 @@ le Picture chiah law a save cang lai, website na restart zongah
 a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB tlun lo ding.</p>
 <form method="post" enctype="multipart/form-data">
 <label>Name / Min *</label>
-<input name="name" required placeholder="e.g. Pastor min">
+<input name="name" required placeholder="e.g. Pastor Hming">
 <label>Position / Rian</label>
 <select name="position">{% for pos in positions %}<option value="{{ pos }}">{{ pos }}</option>{% endfor %}<option value="Other">Other</option></select>
 <label>Other Position (Other na thim ahcun tial)</label>
@@ -3142,14 +3149,17 @@ onsubmit="return confirm('Hi thawng thar hi delete duh taktak maw?')">
 <button class="btn" type="submit">Add News / Thawng Thar Chiah</button>
 </form></div>{% endif %}
 <div class="card"><h3>Church Activity Pictures / Khrihfabu Cawlcanghnak Hmanthlak</h3>
-{% if gallery %}<div class="gallery">{% for g in gallery %}<figure class="g-item"><a href="/gallery-photo/{{ g.id }}" target="_blank"><img src="/gallery-photo/{{ g.id }}" alt="{{ g.caption }}" loading="lazy"></a>{% if g.caption %}<figcaption>{{ g.caption }}</figcaption>{% endif %}{% if is_admin %}<form method="post" action="/gallery/delete/{{ g.id }}" onsubmit="return confirm('Hi hmanthlak hi delete duh taktak maw?')"><button type="submit">Delete</button></form>{% endif %}</figure>{% endfor %}</div>
+{% if gallery_albums %}{% for a in gallery_albums %}<h4 class="album-title">{{ a.name }} <span class="album-count">({{ a.photos|length }})</span></h4><div class="gallery">{% for g in a.photos %}<figure class="g-item"><a href="/gallery-photo/{{ g.id }}" target="_blank"><img src="/gallery-photo/{{ g.id }}" alt="{{ g.caption }}" loading="lazy"></a>{% if g.caption %}<figcaption>{{ g.caption }}</figcaption>{% endif %}{% if is_admin %}<form method="post" action="/gallery/delete/{{ g.id }}" onsubmit="return confirm('Hi hmanthlak hi delete duh taktak maw?')"><button type="submit">Delete</button></form>{% endif %}</figure>{% endfor %}</div>{% endfor %}
 {% else %}<p class="empty">Hmanthlak a um rih lo.{% if is_admin %} A tanglei form in activity hmanthlak upload.{% endif %}</p>{% endif %}
 {% if is_admin %}<form method="post" enctype="multipart/form-data" action="/gallery/upload" style="margin-top:12px">
-<label>Picture (JPG, PNG, WebP, GIF, 8 MB tlun lo)</label>
-<input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" required>
-<label>Caption / Hmanthlak kong (duh ahcun)</label>
-<input name="caption" placeholder="e.g. 2026 Church Picnic">
-<button class="btn" type="submit">Upload Picture / Hmanthlak Thun</button></form>{% endif %}</div>
+<label>Album - a thar ser duh ah a min thar tial; a um cang mi album ah chap duh ah a min kha thim/tial</label>
+<input name="album" list="album-list" placeholder="e.g. 2026 Church Picnic">
+<datalist id="album-list">{% for n in album_names %}<option value="{{ n }}">{% endfor %}</datalist>
+<label>Pictures - voikhat ah tampi thim khawh a si (JPG, PNG, WebP, GIF, pakhat 8 MB tlun lo)</label>
+<input name="photo" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" required>
+<label>Caption / Hmanthlak kong (duh ahcun - hi voikhat upload mi vialte caah)</label>
+<input name="caption" placeholder="e.g. Picnic hmanthlak">
+<button class="btn" type="submit">Upload Pictures / Hmanthlak Thunh</button></form>{% endif %}</div>
 <div class="card"><h3>RCBC YouTube</h3>
 {% if youtube_channel %}<p><a class="btn yt-btn" href="{{ youtube_channel }}" target="_blank" rel="noopener">&#9654; RCBC YouTube Channel</a></p>{% endif %}
 {% if videos %}{% for v in videos %}<div class="video-box"><p><strong>{{ v.title }}</strong></p><div class="video-wrap"><iframe src="https://www.youtube-nocookie.com/embed/{{ v.video_id }}" title="{{ v.title }}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>{% if is_admin %}<form method="post" action="/videos/delete/{{ v.id }}" onsubmit="return confirm('Hi video hi delete duh taktak maw?')" style="margin-top:8px"><button type="submit">Delete</button></form>{% endif %}</div>{% endfor %}
@@ -3168,7 +3178,8 @@ onsubmit="return confirm('Hi thawng thar hi delete duh taktak maw?')">
     return render_template_string(
         html, title="Church News", active="news", church=CHURCH,
         news=get_news(), today=date.today().isoformat(),
-        gallery=get_gallery_photos(), videos=get_videos(),
+        gallery=get_gallery_photos(), gallery_albums=get_gallery_albums(),
+        album_names=get_album_names(), videos=get_videos(),
         youtube_channel=get_youtube_channel(),
     )
 
@@ -3190,11 +3201,30 @@ def get_gallery_photos():
     db = get_db()
     try:
         rows = db.execute(
-            "SELECT id, caption FROM gallery_photos ORDER BY id DESC"
+            "SELECT id, caption, album FROM gallery_photos ORDER BY id DESC"
         ).fetchall()
     except Exception:
         return []
-    return [{"id": r["id"], "caption": r["caption"] or ""} for r in rows]
+    return [{"id": r["id"], "caption": r["caption"] or "",
+             "album": r["album"] or ""} for r in rows]
+
+
+def get_gallery_albums():
+    """Photos kha album in group - photo thar bik ngei mi album
+    a cung bik ah a lang."""
+    albums = []
+    by_name = {}
+    for p in get_gallery_photos():
+        name = p["album"] or "Church Activity"
+        if name not in by_name:
+            by_name[name] = {"name": name, "photos": []}
+            albums.append(by_name[name])
+        by_name[name]["photos"].append(p)
+    return albums
+
+
+def get_album_names():
+    return [a["name"] for a in get_gallery_albums()]
 
 
 def get_videos():
@@ -3248,15 +3278,21 @@ def youtube_video_id(url):
 @app.route("/gallery/upload", methods=["POST"])
 @login_required
 def gallery_upload():
-    data, mime, err = _read_leader_photo(request.files.get("photo"))
-    if data:
-        db = get_db()
-        db.execute(
-            "INSERT INTO gallery_photos (caption, data, mimetype, created) "
-            "VALUES (?,?,?,?)",
-            (request.form.get("caption", "").strip(), data, mime,
-             date.today().isoformat()),
-        )
+    album = request.form.get("album", "").strip()
+    caption = request.form.get("caption", "").strip()
+    db = get_db()
+    saved = 0
+    for f in request.files.getlist("photo"):
+        data, mime, err = _read_leader_photo(f)
+        if data:
+            db.execute(
+                "INSERT INTO gallery_photos "
+                "(caption, data, mimetype, created, album) "
+                "VALUES (?,?,?,?,?)",
+                (caption, data, mime, date.today().isoformat(), album),
+            )
+            saved += 1
+    if saved:
         db.commit()
     return redirect(url_for("church_news"))
 
@@ -3603,7 +3639,7 @@ def about():
 <div class="card" id="contact"><h3>Contact Us / Kan Sin Ah Thawng Kuat</h3>
 {% if sent == "1" %}<p class="ok-note">Kan lawm tuk — na thawng a phan cang. A rang khawh chungin kan in leh lai.</p>{% endif %}
 {% if sent == "0" %}<p class="err-note">A kal lo — na tial mi check ṭhan law a tanglei in kuat ṭhan tuah.</p>{% endif %}
-{% if contact_on %}<p>Thawng a si ah, thlacam cah na duh mi (prayer request) a si ah — a tanglei form in kuat khawh a si. Na email le phone cu kan in lehnak ding lawngah kan hman lai.</p>
+{% if contact_on %}<p>Thawng a si ah, thlacam sawnh (prayer request) a si ah — a tanglei form in kuat khawh a si. Na email le phone cu kan in lehnak ding lawngah kan hmang lai.</p>
 <form method="post" action="/contact">
 <label>Na Min / Your Name *</label>
 <input name="name" required maxlength="80">
@@ -3612,9 +3648,9 @@ def about():
 <label>Phone Nambar / Phone</label>
 <input name="phone" maxlength="40">
 <label>Topic</label>
-<select name="topic"><option value="Message">Message / Thawng</option><option value="Prayer Request">Prayer Request / Thlacam cah</option></select>
+<select name="topic"><option value="Message">Message / Thawng</option><option value="Prayer Request">Prayer Request / Thlacam Sawnh</option></select>
 <label>Na Thawng / Message *</label>
-<textarea name="message" rows="6" required maxlength="4000" placeholder="Na duh mi thawng silole thlacam cah na duhmi hika hin tial..."></textarea>
+<textarea name="message" rows="6" required maxlength="4000" placeholder="Na duh mi thawng silole thlacam sawnh hika hin tial..."></textarea>
 <input name="website" style="display:none" tabindex="-1" autocomplete="off">
 <button class="btn" type="submit">Kuat / Send</button></form>
 {% elif is_admin %}<p class="empty">Admin theih ding: contact form hi rian a ṭuan rih lo — Render Environment ah RCBC_CONTACT_TO, RCBC_SMTP_USER, RCBC_SMTP_PASS (Gmail App Password) chiah a hau rih.</p>{% endif %}
@@ -3838,7 +3874,7 @@ CAAN_EDIT_HTML = """
 <label>Rian le A Ngeitu / Duty Rows</label>
 <div class="duty-rows">{% for it in items %}<div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu" value="{{ it.role }}">
-<input name="person" placeholder="A Ngeitu - e.g. Upa min" value="{{ it.person }}">
+<input name="person" placeholder="A Ngeitu - e.g. Upa Hming" value="{{ it.person }}">
 <button type="button" class="remove-duty-row">Hloh</button></div>{% endfor %}
 <div class="duty-row">
 <input name="role" list="duty-roles" placeholder="Rian - e.g. Pumh Hruaitu">

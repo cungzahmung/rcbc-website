@@ -1417,8 +1417,32 @@ def _gh_snapshot_bytes():
     return data
 
 
+def _gh_repo_is_empty():
+    try:
+        _gh_api("GET", "/repos/" + GH_BACKUP_REPO + "/git/ref/heads/main")
+        return False
+    except _gh_urlerr.HTTPError as e:
+        if e.code in (404, 409):
+            return True
+        raise
+
+
+def _gh_seed_repo():
+    """Repo lawng (commit hmasa bik a um lo) ahcun Git Data API nih 409 in
+    a leh - Contents API in file pakhat chiah hmasa in commit hmasa bik
+    ser a hau."""
+    body = ("RCBC website auto-backup repository.\n"
+            "church_directory.db = website data backup file.\n").encode()
+    _gh_api("PUT", "/repos/" + GH_BACKUP_REPO + "/contents/backup-info.txt",
+            {"message": "Initialize backup repo",
+             "content": base64.b64encode(body).decode("ascii"),
+             "branch": "main"})
+
+
 def _gh_upload_backup():
     """Database snapshot kha GitHub repo ah commit tuah."""
+    if _gh_repo_is_empty():
+        _gh_seed_repo()
     data = _gh_snapshot_bytes()
     repo = "/repos/" + GH_BACKUP_REPO
     blob = _gh_api("POST", repo + "/git/blobs", {

@@ -2551,7 +2551,7 @@ def home():
 <div class="grid">
 {% if is_admin %}<div class="card"><h3>Directory</h3><p>Chungtel min le address kawl.</p><a href="/directory">Directory &rarr;</a></div>{% endif %}
 <div class="card"><h3>Church Event</h3><p>Bupi, Youth, CE, Mission le Nubu department events.</p><a href="/church-event">Church Event &rarr;</a></div>
-<div class="card"><h3>Church News</h3><p>Thuthang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
+<div class="card"><h3>Church News</h3><p>Thawngpang thar pawl.</p><a href="/church-news">Church News &rarr;</a></div>
 <div class="card"><h3>Pathian Bia</h3><p>Thawngtha bia - Pathian bia rel khawh.</p><a href="/pathian-bia">Pathian Bia &rarr;</a></div>
 <div class="card"><h3>Caan Ngeitu</h3><p>Pumhnak cio i rian ngeitu pawl.</p><a href="/caan-ngeitu">Caan Ngeitu &rarr;</a></div>
 </div>

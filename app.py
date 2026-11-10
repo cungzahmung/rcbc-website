@@ -3639,7 +3639,7 @@ def about():
 <div class="card" id="contact"><h3>Contact Us / Kan Sin Ah Thawng Kuat</h3>
 {% if sent == "1" %}<p class="ok-note">Kan lawm tuk — na thawng a phan cang. A rang khawh chungin kan in leh lai.</p>{% endif %}
 {% if sent == "0" %}<p class="err-note">A kal lo — na tial mi check ṭhan law a tanglei in kuat ṭhan tuah.</p>{% endif %}
-{% if contact_on %}<p>Thawng a si ah, thlacam sawnh (prayer request) a si ah — a tanglei form in kuat khawh a si. Na email le phone cu kan in lehnak ding lawngah kan hmang lai.</p>
+{% if contact_on %}<p>Thawng a si ah, thlacam cah duhmi (prayer request) a si ah — a tanglei form in kuat khawh a si. Na email le phone cu kan in lehnak ding lawngah kan hmang lai.</p>
 <form method="post" action="/contact">
 <label>Na Min / Your Name *</label>
 <input name="name" required maxlength="80">
@@ -3648,9 +3648,9 @@ def about():
 <label>Phone Nambar / Phone</label>
 <input name="phone" maxlength="40">
 <label>Topic</label>
-<select name="topic"><option value="Message">Message / Thawng</option><option value="Prayer Request">Prayer Request / Thlacam Sawnh</option></select>
+<select name="topic"><option value="Message">Message / Thawng</option><option value="Prayer Request">Prayer Request / Thlacam cah duhmi</option></select>
 <label>Na Thawng / Message *</label>
-<textarea name="message" rows="6" required maxlength="4000" placeholder="Na duh mi thawng silole thlacam sawnh hika hin tial..."></textarea>
+<textarea name="message" rows="6" required maxlength="4000" placeholder="Na duh mi thawng silole thlacam duhmi hika hin tial..."></textarea>
 <input name="website" style="display:none" tabindex="-1" autocomplete="off">
 <button class="btn" type="submit">Kuat / Send</button></form>
 {% elif is_admin %}<p class="empty">Admin theih ding: contact form hi rian a ṭuan rih lo — Render Environment ah RCBC_CONTACT_TO, RCBC_SMTP_USER, RCBC_SMTP_PASS (Gmail App Password) chiah a hau rih.</p>{% endif %}

@@ -2571,7 +2571,7 @@ def home():
 <p><img src="/church-logo" alt="Church Logo" style="max-width:160px;max-height:160px;background:#fff;border:1px solid #e5ddd0;border-radius:8px;padding:6px"></p>
 {% else %}<p class="empty">Logo a um rih lo - a tanglei form in upload law page vialte background ah watermark in a lang lai.</p>{% endif %}
 <form method="post" enctype="multipart/form-data" action="/church-logo/upload">
-<label>Logo Photo (JPG, PNG, WebP, GIF, 8 MB tlun lo)</label>
+<label>Logo Photo (JPG, PNG, WebP, GIF, 8 MB ngan lo)</label>
 <input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" required>
 <button class="btn" type="submit">Upload Logo</button></form>
 {% if has_logo %}<form method="post" action="/church-logo/delete" onsubmit="return confirm('Logo hi hloh duh taktak maw? Watermark a lang ti lai lo.')" style="margin-top:10px"><button type="submit">Logo Hloh / Remove Logo</button></form>{% endif %}
@@ -2936,7 +2936,7 @@ LEADERS_PAGE_HTML = """
 {% if is_admin %}<div class="card"><h3>Leader Thar Chiah / Add Leader</h3>
 <p class="empty">hika form in Min, Position
 le Picture chiah law a save cang lai, website na restart zongah
-a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB tlun lo ding.</p>
+a tlau lai lo. Photo cu JPG, PNG, WebP, GIF, 8 MB ngan lo ding.</p>
 <form method="post" enctype="multipart/form-data">
 <label>Name / Min *</label>
 <input name="name" required placeholder="e.g. Pastor min">
@@ -3155,7 +3155,7 @@ onsubmit="return confirm('Hi thawng thar hi delete duh taktak maw?')">
 <label>Album - a thar ser duh ah a min thar tial; a um cang mi album ah chap duh ah a min kha thim/tial</label>
 <input name="album" list="album-list" placeholder="e.g. 2026 Church Picnic">
 <datalist id="album-list">{% for n in album_names %}<option value="{{ n }}">{% endfor %}</datalist>
-<label>Pictures - voikhat ah tampi thim khawh a si (JPG, PNG, WebP, GIF, pakhat 8 MB tlun lo)</label>
+<label>Pictures - voikhat ah tampi thim khawh a si (JPG, PNG, WebP, GIF, pakhat 8 MB ngan lo)</label>
 <input name="photo" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" required>
 <label>Caption / Hmanthlak kong (duh ahcun - hi voikhat upload mi vialte caah)</label>
 <input name="caption" placeholder="e.g. Picnic hmanthlak">
